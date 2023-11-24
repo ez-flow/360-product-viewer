@@ -1,5 +1,11 @@
 # @ez-flow-studio/360-product-viewer
 
+## 1.0.1
+
+### Patch Changes
+
+- 6135cdf: Minified css
+
 ## 1.0.0
 
 ### Major Changes
