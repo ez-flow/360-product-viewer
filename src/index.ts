@@ -17,9 +17,11 @@ window.Webflow.push(() => {
 
   //#region Init
   // 360 Product view elements
-  const wrapper = document.querySelector<HTMLDivElement>('div[product-viewer-360="wrapper"]');
-  const container = document.querySelector<HTMLDivElement>('div[product-viewer-360="container"]');
-  const images = document.querySelectorAll<HTMLImageElement>('img[product-viewer-360="image"]');
+  const wrapper = document.querySelector<HTMLDivElement>('div[ez--product-viewer-360="wrapper"]');
+  const container = document.querySelector<HTMLDivElement>(
+    'div[ez--product-viewer-360="container"]'
+  );
+  const images = document.querySelectorAll<HTMLImageElement>('img[ez--product-viewer-360="image"]');
   if (!wrapper || !container || !images?.length) {
     return;
   }
@@ -32,14 +34,14 @@ window.Webflow.push(() => {
   const minimXMovementToChangeImage: number =
     Math.round(container.getBoundingClientRect().width / images.length) / 2;
   const style: StyleOptions = {
-    borderRadius: wrapper.getAttribute('product-viewer-360-border-radius'),
-    color: wrapper.getAttribute('product-viewer-360-color'),
-    backgroundColor: wrapper.getAttribute('product-viewer-360-bg-color'),
+    borderRadius: wrapper.getAttribute('ez--product-viewer-360-border-radius'),
+    color: wrapper.getAttribute('ez--product-viewer-360-color'),
+    backgroundColor: wrapper.getAttribute('ez--product-viewer-360-bg-color'),
   };
 
   //Init image display
   for (let i = 0; i < images.length; i++) {
-    images[i].setAttribute('product-viewer-360', `image-${i}`); //not useful as of now
+    images[i].setAttribute('ez--product-viewer-360', `image-${i}`); //not useful as of now
     if (i === currentVisibleImage) {
       images[currentVisibleImage].style.display = 'block';
     } else {
@@ -56,6 +58,7 @@ window.Webflow.push(() => {
   document.body.prepend(cursorElement.cursorLabel);
   //#endregion
 
+  //#region Mouse
   window.addEventListener('mousedown', (event) => {
     containerArea = getElementArea(container);
     const mouseCoords: Coordinates = {
@@ -115,7 +118,9 @@ window.Webflow.push(() => {
       cursorElement.cursorLabel.style.display = 'none';
     }
   });
+  //#endregion
 
+  //#region KEYBORD
   window.addEventListener('keydown', (event) => {
     if (!images[currentVisibleImage]) {
       return;
@@ -132,4 +137,5 @@ window.Webflow.push(() => {
       images[currentVisibleImage].style.display = 'block';
     }
   });
+  //#endregion
 });
