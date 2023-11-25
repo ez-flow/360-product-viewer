@@ -1,55 +1,5 @@
-export type Area = {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-};
-
-export type Coordinates = {
-  x: number;
-  y: number;
-};
-
-export type StyleOptions = {
-  borderRadius: string | null;
-  color: string | null;
-  backgroundColor: string | null;
-};
-
-export type CursorElement = {
-  cursor: HTMLElement;
-  cursorLabel: HTMLElement;
-};
-
-/**
- * Create Html Element.
- * @param {String} HTML representing a single element
- * @return {HTMLElement}
- */
-const htmlToElement = (html: string): HTMLElement => {
-  const template = document.createElement('template');
-  html = html.trim(); // Never return a text node of whitespace as the result
-  template.innerHTML = html;
-  return <HTMLElement>template.content.firstChild;
-};
-
-/**
- * Create Action container element.
- * @param {StyleOptions} options
- * @return {HTMLElement}
- */
-export const createActionContainer = (options: StyleOptions | null = null): HTMLElement => {
-  const actionContainer: HTMLElement = htmlToElement(
-    `<div class="product-action-container"><div>360°</div></div>`
-  );
-  actionContainer.style.zIndex = '2';
-  actionContainer.style.opacity = '.65';
-  actionContainer.style.color = options?.color ?? '#fff';
-  actionContainer.style.backgroundColor = options?.backgroundColor ?? '#000';
-  actionContainer.style.borderRadius = options?.borderRadius ?? '0px';
-  actionContainer.style.padding = '.5rem 1rem';
-  return actionContainer;
-};
+import { htmlToElement } from './helper';
+import type { Area, Coordinates, CursorElement, StyleOptions } from './types';
 
 /**
  * Create cursor element.

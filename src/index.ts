@@ -1,12 +1,13 @@
-import type { Area, Coordinates, CursorElement, StyleOptions } from '$utils/mouse';
+import { createActionContainer, createSlider } from '$utils/frame';
+import { addMultipleEventListener } from '$utils/helper';
 import {
-  createActionContainer,
   createCursorElement,
   getElementArea,
   isPointInArea,
   setCursorPosition,
   unFocus,
 } from '$utils/mouse';
+import type { Area, Coordinates, CursorElement, StyleOptions } from '$utils/types';
 // import * from '@finsweet/ts-utils';
 
 window.Webflow ||= [];
@@ -29,7 +30,8 @@ window.Webflow.push(() => {
   // 360 Product view variables
   let currentVisibleImage: number = 0;
   let lastClickedMousePositionX: number = 0;
-  let mouseIsDownInArea: boolean = false;
+  let pointerIsDownInArea: boolean = false;
+  let screenIsDesktop: boolean = window.screen.width > 991;
   let containerArea: Area = getElementArea(container);
   const minimXMovementToChangeImage: number =
     Math.round(container.getBoundingClientRect().width / images.length) / 2;
@@ -49,52 +51,72 @@ window.Webflow.push(() => {
     }
   }
 
-  // Add 360 info + cursor
+  // Add html elemnts
   const actionContainer: HTMLElement = createActionContainer(style);
-  wrapper.prepend(actionContainer);
+  if (screenIsDesktop) {
+    wrapper.prepend(actionContainer);
+  } else {
+    wrapper.append(actionContainer);
+  }
+
+  const slider: HTMLElement = createSlider(images.length, style);
+  if (!screenIsDesktop) {
+    wrapper.append(slider);
+  }
 
   const cursorElement: CursorElement = createCursorElement(style);
   document.body.prepend(cursorElement.cursor);
   document.body.prepend(cursorElement.cursorLabel);
   //#endregion
 
-  //#region Mouse
-  window.addEventListener('mousedown', (event) => {
+  //#region Mouse and Touch
+  addMultipleEventListener(window, ['mousedown', 'touchstart'], (event: Event) => {
+    const isTouchEvent: boolean = event.type === 'touchstart';
     containerArea = getElementArea(container);
-    const mouseCoords: Coordinates = {
-      x: event.clientX,
-      y: event.clientY,
+    const pointerCoords: Coordinates = {
+      x: isTouchEvent ? (<TouchEvent>event).touches[0].clientX : (<MouseEvent>event).clientX,
+      y: isTouchEvent ? (<TouchEvent>event).touches[0].clientY : (<MouseEvent>event).clientY,
     };
-    if (isPointInArea(mouseCoords, containerArea)) {
-      lastClickedMousePositionX = event.pageX;
-      mouseIsDownInArea = true;
+    if (isPointInArea(pointerCoords, containerArea)) {
+      lastClickedMousePositionX = isTouchEvent
+        ? (<TouchEvent>event).touches[0].pageX
+        : (<MouseEvent>event).pageX;
+      pointerIsDownInArea = true;
     }
   });
 
-  window.addEventListener('mouseup', () => {
-    if (mouseIsDownInArea) {
+  addMultipleEventListener(window, ['mouseup', 'touchend'], () => {
+    if (pointerIsDownInArea) {
       unFocus();
     }
-    mouseIsDownInArea = false;
+    pointerIsDownInArea = false;
   });
 
-  window.addEventListener('mousemove', (event: MouseEvent) => {
-    if (mouseIsDownInArea) {
+  addMultipleEventListener(window, ['mousemove', 'touchmove'], (event: Event) => {
+    if (pointerIsDownInArea) {
       unFocus();
     }
+    screenIsDesktop = window.screen.width > 991;
+    const isTouchEvent: boolean = event.type === 'touchmove';
     containerArea = getElementArea(container);
-    const mouseCoords = {
-      x: event.clientX,
-      y: event.clientY,
+    const pointerCoords: Coordinates = {
+      x: isTouchEvent ? (<TouchEvent>event).touches[0].clientX : (<MouseEvent>event).clientX,
+      y: isTouchEvent ? (<TouchEvent>event).touches[0].clientY : (<MouseEvent>event).clientY,
     };
-    const percent = (mouseCoords.x - lastClickedMousePositionX) / minimXMovementToChangeImage;
+    const percent = (pointerCoords.x - lastClickedMousePositionX) / minimXMovementToChangeImage;
 
     if (
-      mouseIsDownInArea &&
+      pointerIsDownInArea &&
       Math.abs(percent) >= 0.95 &&
-      mouseCoords.x !== lastClickedMousePositionX
+      pointerCoords.x !== lastClickedMousePositionX
     ) {
       images[currentVisibleImage].style.display = 'none';
+      let currentSlide = slider.querySelector<HTMLDivElement>(
+        `div[ez--product-viewer-360="slide-${currentVisibleImage}"]`
+      );
+      if (currentSlide) {
+        currentSlide.style.opacity = '.3';
+      }
       if (percent < 0) {
         currentVisibleImage =
           currentVisibleImage === 0 ? images.length - 1 : currentVisibleImage - 1;
@@ -103,19 +125,27 @@ window.Webflow.push(() => {
           currentVisibleImage === images.length - 1 ? 0 : currentVisibleImage + 1;
       }
       images[currentVisibleImage].style.display = 'block';
-      lastClickedMousePositionX = mouseCoords.x;
+      currentSlide = slider.querySelector<HTMLDivElement>(
+        `div[ez--product-viewer-360="slide-${currentVisibleImage}"]`
+      );
+      if (currentSlide) {
+        currentSlide.style.opacity = '.65';
+      }
+      lastClickedMousePositionX = pointerCoords.x;
     }
 
-    if (isPointInArea(mouseCoords, containerArea) || mouseIsDownInArea) {
-      document.body.classList.add('cursor-hidden');
-      cursorElement.cursor.style.display = 'block';
-      cursorElement.cursorLabel.style.display = 'block';
-      setCursorPosition(cursorElement.cursor, event);
-      setCursorPosition(cursorElement.cursorLabel, event);
-    } else {
-      document.body.classList.remove('cursor-hidden');
-      cursorElement.cursor.style.display = 'none';
-      cursorElement.cursorLabel.style.display = 'none';
+    if (!isTouchEvent && screenIsDesktop) {
+      if (isPointInArea(pointerCoords, containerArea) || pointerIsDownInArea) {
+        document.body.classList.add('cursor-hidden');
+        cursorElement.cursor.style.display = 'block';
+        cursorElement.cursorLabel.style.display = 'block';
+        setCursorPosition(cursorElement.cursor, <MouseEvent>event);
+        setCursorPosition(cursorElement.cursorLabel, <MouseEvent>event);
+      } else {
+        document.body.classList.remove('cursor-hidden');
+        cursorElement.cursor.style.display = 'none';
+        cursorElement.cursorLabel.style.display = 'none';
+      }
     }
   });
   //#endregion
@@ -125,16 +155,35 @@ window.Webflow.push(() => {
     if (!images[currentVisibleImage]) {
       return;
     }
+    let currentSlide = slider.querySelector<HTMLDivElement>(
+      `div[ez--product-viewer-360="slide-${currentVisibleImage}"]`
+    );
 
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       images[currentVisibleImage].style.display = 'none';
+      if (currentSlide) {
+        currentSlide.style.opacity = '.3';
+      }
     }
+
     if (event.key === 'ArrowLeft') {
       currentVisibleImage = currentVisibleImage === 0 ? images.length - 1 : currentVisibleImage - 1;
       images[currentVisibleImage].style.display = 'block';
+      currentSlide = slider.querySelector<HTMLDivElement>(
+        `div[ez--product-viewer-360="slide-${currentVisibleImage}"]`
+      );
+      if (currentSlide) {
+        currentSlide.style.opacity = '.65';
+      }
     } else if (event.key === 'ArrowRight') {
       currentVisibleImage = currentVisibleImage === images.length - 1 ? 0 : currentVisibleImage + 1;
       images[currentVisibleImage].style.display = 'block';
+      currentSlide = slider.querySelector<HTMLDivElement>(
+        `div[ez--product-viewer-360="slide-${currentVisibleImage}"]`
+      );
+      if (currentSlide) {
+        currentSlide.style.opacity = '.65';
+      }
     }
   });
   //#endregion
