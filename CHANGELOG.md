@@ -1,5 +1,11 @@
 # @ez-flow-studio/360-product-viewer
 
+## 3.0.0
+
+### Major Changes
+
+- 254c35b: Mobile compatible
+
 ## 2.0.0
 
 ### Major Changes
