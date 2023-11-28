@@ -69,6 +69,11 @@ window.Webflow.push(() => {
 
   // Add html elements
   const swiperContainer: HTMLElement = createSwiper(style);
+  timeout = setTimeout(() => {
+    if (!screenIsDesktop) {
+      wrapper.prepend(swiperContainer);
+    }
+  }, 1500);
 
   const actionContainer: HTMLElement = createActionContainer(style);
   if (screenIsDesktop) {
@@ -91,22 +96,12 @@ window.Webflow.push(() => {
       swiperContainer.remove();
       clearTimeout(timeout);
     }
-
-    timeout = setTimeout(() => {
-      if (!screenIsDesktop) {
-        wrapper.prepend(swiperContainer);
-      }
-    }, 3000);
-  };
-
-  window.onload = () => {
-    addMultipleEventListener(window, ['touchmove', 'touchstart'], resetTimer);
-    // start the timer
-    resetTimer();
   };
   //#endregion
 
   //#region Mouse and Touch
+  addMultipleEventListener(container, ['touchmove'], resetTimer);
+
   addMultipleEventListener(window, ['mousedown', 'touchstart'], (event: Event) => {
     const isTouchEvent: boolean = event.type === 'touchstart';
     containerArea = getElementArea(container);

@@ -11,7 +11,7 @@ export const htmlToElement = (html: string): HTMLElement => {
 };
 
 export const addMultipleEventListener = (
-  element: Window,
+  element: Window | HTMLElement,
   events: string[],
   eventHandler: EventListenerOrEventListenerObject
 ) => {
