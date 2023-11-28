@@ -1,4 +1,4 @@
-import { createActionContainer, createSlider } from '$utils/frame';
+import { createActionContainer, createSlider, createSwiper } from '$utils/frame';
 import { addMultipleEventListener } from '$utils/helper';
 import {
   createCursorElement,
@@ -28,6 +28,7 @@ window.Webflow.push(() => {
   }
 
   // 360 Product view variables
+  let timeout: number = 0;
   let currentVisibleImage: number = 0;
   let lastClickedMousePositionX: number = 0;
   let pointerIsDownInArea: boolean = false;
@@ -41,6 +42,21 @@ window.Webflow.push(() => {
     backgroundColor: wrapper.getAttribute('ez--product-viewer-360-bg-color'),
   };
 
+  // Add general style
+  const cursorStyleSheet: HTMLStyleElement = document.createElement('style');
+  cursorStyleSheet.type = 'text/css';
+  const cursorStyle: string = `body.cursor-hidden {cursor: none;}@media (hover: hover) {@keyframes pbRowProductHeaderCursorLabel {0% {-webkit-clip-path: inset(0 0 round ${
+    style?.borderRadius ?? '0px'
+  });clip-path: inset(0 0 round ${
+    style?.borderRadius ?? '0px'
+  });}to {-webkit-clip-path: inset(2px 4px round ${
+    style?.borderRadius ?? '0px'
+  });clip-path: inset(2px 4px round ${
+    style?.borderRadius ?? '0px'
+  });}}}@keyframes swipe {0% {transform: translate(-50%, -50%) rotate(-15deg);}100% {transform: translate(-50%, -50%) rotate(5deg);}}`;
+  cursorStyleSheet.innerHTML = cursorStyle;
+  document.getElementsByTagName('head')[0].appendChild(cursorStyleSheet);
+
   //Init image display
   for (let i = 0; i < images.length; i++) {
     images[i].setAttribute('ez--product-viewer-360', `image-${i}`); //not useful as of now
@@ -51,7 +67,9 @@ window.Webflow.push(() => {
     }
   }
 
-  // Add html elemnts
+  // Add html elements
+  const swiperContainer: HTMLElement = createSwiper(style);
+
   const actionContainer: HTMLElement = createActionContainer(style);
   if (screenIsDesktop) {
     wrapper.prepend(actionContainer);
@@ -67,6 +85,25 @@ window.Webflow.push(() => {
   const cursorElement: CursorElement = createCursorElement(style);
   document.body.prepend(cursorElement.cursor);
   document.body.prepend(cursorElement.cursorLabel);
+
+  const resetTimer = () => {
+    if (timeout) {
+      swiperContainer.remove();
+      clearTimeout(timeout);
+    }
+
+    timeout = setTimeout(() => {
+      if (!screenIsDesktop) {
+        wrapper.prepend(swiperContainer);
+      }
+    }, 3000);
+  };
+
+  window.onload = () => {
+    addMultipleEventListener(window, ['touchmove', 'touchstart'], resetTimer);
+    // start the timer
+    resetTimer();
+  };
   //#endregion
 
   //#region Mouse and Touch
