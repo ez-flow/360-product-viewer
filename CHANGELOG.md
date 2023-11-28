@@ -1,5 +1,11 @@
 # @ez-flow-studio/360-product-viewer
 
+## 3.1.1
+
+### Patch Changes
+
+- a1278b5: Swipe alerte appear once after 1,5sec
+
 ## 3.1.0
 
 ### Minor Changes
