@@ -1,5 +1,11 @@
 # @ez-flow-studio/360-product-viewer
 
+## 3.1.0
+
+### Minor Changes
+
+- 665c6f3: Swipe alerte
+
 ## 3.0.0
 
 ### Major Changes
